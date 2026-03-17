@@ -1,0 +1,1284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EduCore ERP — School Management System</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --primary: #1a2744;
+    --primary-light: #253461;
+    --accent: #4f8ef7;
+    --accent-warm: #f97316;
+    --success: #22c55e;
+    --danger: #ef4444;
+    --warning: #f59e0b;
+    --bg: #f4f6fb;
+    --bg-card: #ffffff;
+    --text: #1a2744;
+    --text-muted: #6b7a99;
+    --border: #e2e8f0;
+    --sidebar-w: 240px;
+    --font: 'DM Sans', sans-serif;
+    --font-display: 'Playfair Display', serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; display: flex; }
+
+  /* SIDEBAR */
+  #sidebar {
+    width: var(--sidebar-w); min-height: 100vh; background: var(--primary);
+    display: flex; flex-direction: column; position: fixed; left: 0; top: 0; z-index: 100;
+    transition: width .3s;
+  }
+  .sidebar-logo {
+    padding: 20px 20px 16px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+  }
+  .sidebar-logo .logo-icon {
+    width: 36px; height: 36px; background: var(--accent); border-radius: 10px;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 18px; margin-bottom: 8px;
+  }
+  .sidebar-logo .logo-name { font-family: var(--font-display); color: #fff; font-size: 18px; }
+  .sidebar-logo .logo-sub { color: rgba(255,255,255,0.4); font-size: 11px; letter-spacing: 1px; text-transform: uppercase; }
+
+  .nav-group { padding: 16px 0 8px; }
+  .nav-label { color: rgba(255,255,255,0.35); font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; padding: 0 20px 6px; }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px; padding: 9px 20px;
+    color: rgba(255,255,255,0.6); cursor: pointer; transition: all .15s;
+    font-size: 13.5px; border-left: 3px solid transparent;
+  }
+  .nav-item:hover { background: rgba(255,255,255,0.07); color: #fff; }
+  .nav-item.active { background: rgba(79,142,247,0.15); color: var(--accent); border-left-color: var(--accent); }
+  .nav-item .nav-icon { font-size: 15px; width: 18px; text-align: center; }
+  .nav-badge { margin-left: auto; background: var(--accent); color: #fff; font-size: 10px; padding: 1px 6px; border-radius: 20px; }
+
+  /* TOPBAR */
+  #topbar {
+    position: fixed; top: 0; left: var(--sidebar-w); right: 0; height: 60px;
+    background: var(--bg-card); border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; padding: 0 24px; gap: 16px; z-index: 90;
+  }
+  .topbar-title { font-size: 17px; font-weight: 600; flex: 1; }
+  .topbar-search {
+    background: var(--bg); border: 1px solid var(--border); border-radius: 8px;
+    padding: 7px 14px; font-size: 13px; width: 220px; outline: none; font-family: var(--font);
+    transition: border-color .2s;
+  }
+  .topbar-search:focus { border-color: var(--accent); }
+  .topbar-actions { display: flex; gap: 8px; align-items: center; }
+  .topbar-btn {
+    background: none; border: 1px solid var(--border); border-radius: 8px;
+    padding: 6px 10px; cursor: pointer; font-size: 14px; position: relative;
+    transition: background .15s;
+  }
+  .topbar-btn:hover { background: var(--bg); }
+  .notif-dot { position: absolute; top: 5px; right: 6px; width: 7px; height: 7px; background: var(--danger); border-radius: 50%; border: 1.5px solid white; }
+  .avatar { width: 32px; height: 32px; background: var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 13px; font-weight: 600; cursor: pointer; }
+
+  /* MAIN */
+  #main { margin-left: var(--sidebar-w); margin-top: 60px; padding: 28px 28px; flex: 1; }
+
+  /* VIEWS */
+  .view { display: none; }
+  .view.active { display: block; }
+
+  /* CARDS */
+  .card {
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px;
+    padding: 20px 22px;
+  }
+  .card-title { font-size: 14px; font-weight: 600; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+
+  /* STATS ROW */
+  .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+  .stat-card {
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px;
+    padding: 20px 22px; position: relative; overflow: hidden;
+  }
+  .stat-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+  .stat-card.blue::before { background: var(--accent); }
+  .stat-card.green::before { background: var(--success); }
+  .stat-card.orange::before { background: var(--accent-warm); }
+  .stat-card.purple::before { background: #a855f7; }
+  .stat-label { font-size: 12px; color: var(--text-muted); margin-bottom: 8px; }
+  .stat-value { font-size: 28px; font-weight: 600; line-height: 1; margin-bottom: 6px; }
+  .stat-change { font-size: 12px; color: var(--success); }
+  .stat-change.down { color: var(--danger); }
+  .stat-icon { position: absolute; top: 18px; right: 18px; font-size: 22px; opacity: 0.15; }
+
+  /* GRID LAYOUTS */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+  .grid-2-1 { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; }
+
+  /* TABLE */
+  .data-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  .data-table th { padding: 10px 14px; text-align: left; color: var(--text-muted); font-weight: 500; font-size: 12px; text-transform: uppercase; letter-spacing: .5px; border-bottom: 1px solid var(--border); }
+  .data-table td { padding: 11px 14px; border-bottom: 1px solid var(--border); }
+  .data-table tr:last-child td { border-bottom: none; }
+  .data-table tr:hover td { background: #f8faff; }
+  .data-table .avatar-sm { width: 28px; height: 28px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; margin-right: 8px; }
+
+  /* BADGES */
+  .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 500; }
+  .badge.green { background: #dcfce7; color: #166534; }
+  .badge.red { background: #fee2e2; color: #991b1b; }
+  .badge.blue { background: #dbeafe; color: #1e40af; }
+  .badge.orange { background: #ffedd5; color: #9a3412; }
+  .badge.purple { background: #f3e8ff; color: #6b21a8; }
+  .badge.gray { background: #f1f5f9; color: #475569; }
+
+  /* FORM */
+  .form-group { margin-bottom: 16px; }
+  .form-label { font-size: 12px; font-weight: 500; color: var(--text-muted); margin-bottom: 6px; display: block; text-transform: uppercase; letter-spacing: .5px; }
+  .form-control {
+    width: 100%; padding: 9px 12px; border: 1px solid var(--border); border-radius: 8px;
+    font-family: var(--font); font-size: 13.5px; outline: none; transition: border-color .2s;
+    background: var(--bg-card);
+  }
+  .form-control:focus { border-color: var(--accent); }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+  /* BUTTONS */
+  .btn {
+    padding: 8px 18px; border-radius: 8px; font-family: var(--font); font-size: 13.5px;
+    font-weight: 500; cursor: pointer; transition: all .15s; border: none;
+  }
+  .btn-primary { background: var(--accent); color: white; }
+  .btn-primary:hover { background: #3a7de6; }
+  .btn-secondary { background: var(--bg); border: 1px solid var(--border); color: var(--text); }
+  .btn-secondary:hover { background: #eaeffa; }
+  .btn-danger { background: var(--danger); color: white; }
+  .btn-sm { padding: 5px 12px; font-size: 12px; }
+
+  /* CHART BARS */
+  .bar-chart { display: flex; gap: 6px; align-items: flex-end; height: 120px; }
+  .bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .bar { width: 100%; border-radius: 4px 4px 0 0; transition: height .4s ease; cursor: pointer; }
+  .bar:hover { filter: brightness(1.1); }
+  .bar-label { font-size: 10px; color: var(--text-muted); }
+
+  /* DONUT */
+  .donut-wrap { position: relative; width: 120px; height: 120px; }
+  .donut-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+
+  /* PROGRESS */
+  .progress-bar { height: 6px; background: var(--bg); border-radius: 4px; overflow: hidden; margin-top: 4px; }
+  .progress-fill { height: 100%; border-radius: 4px; transition: width .5s; }
+
+  /* TIMELINE */
+  .timeline-item { display: flex; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .timeline-item:last-child { border-bottom: none; }
+  .tl-dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 6px; flex-shrink: 0; }
+  .tl-content { flex: 1; }
+  .tl-title { font-size: 13px; font-weight: 500; }
+  .tl-time { font-size: 11px; color: var(--text-muted); }
+
+  /* TABS */
+  .tabs { display: flex; gap: 0; border-bottom: 1px solid var(--border); margin-bottom: 20px; }
+  .tab { padding: 10px 18px; font-size: 13.5px; cursor: pointer; color: var(--text-muted); border-bottom: 2px solid transparent; transition: all .15s; }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); font-weight: 500; }
+  .tab:hover:not(.active) { color: var(--text); }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* MODAL */
+  .modal-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 999; align-items: center; justify-content: center; }
+  .modal-backdrop.open { display: flex; }
+  .modal { background: var(--bg-card); border-radius: 16px; padding: 28px; width: 480px; max-width: 95vw; }
+  .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+  .modal-title { font-size: 17px; font-weight: 600; }
+  .modal-close { background: none; border: none; font-size: 20px; cursor: pointer; color: var(--text-muted); }
+  .modal-footer { margin-top: 20px; display: flex; gap: 10px; justify-content: flex-end; }
+
+  /* CALENDAR */
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+  .cal-day { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 13px; cursor: pointer; }
+  .cal-day:hover { background: var(--bg); }
+  .cal-day.today { background: var(--accent); color: white; }
+  .cal-day.has-event { position: relative; }
+  .cal-day.has-event::after { content: ''; position: absolute; bottom: 3px; left: 50%; transform: translateX(-50%); width: 4px; height: 4px; border-radius: 50%; background: var(--accent-warm); }
+  .cal-day.other-month { color: var(--text-muted); opacity: .5; }
+  .cal-header { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 8px; }
+  .cal-dname { text-align: center; font-size: 11px; color: var(--text-muted); font-weight: 500; }
+
+  /* ATTENDANCE HEATMAP */
+  .att-grid { display: flex; gap: 3px; }
+  .att-col { display: flex; flex-direction: column; gap: 3px; }
+  .att-cell { width: 14px; height: 14px; border-radius: 3px; }
+
+  /* SECTION HEADER */
+  .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 22px; }
+  .section-title { font-size: 22px; font-weight: 600; }
+  .section-sub { font-size: 13px; color: var(--text-muted); margin-top: 2px; }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  /* ANNOUNCEMENT CARD */
+  .ann-item { padding: 12px 0; border-bottom: 1px solid var(--border); }
+  .ann-item:last-child { border-bottom: none; }
+  .ann-title { font-size: 13.5px; font-weight: 500; margin-bottom: 3px; }
+  .ann-meta { font-size: 11px; color: var(--text-muted); }
+
+  /* QUICK ACTIONS */
+  .quick-action { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 18px 12px; border-radius: 12px; border: 1px solid var(--border); background: var(--bg-card); cursor: pointer; transition: all .15s; text-align: center; }
+  .quick-action:hover { border-color: var(--accent); background: #f0f6ff; }
+  .quick-action .qa-icon { font-size: 22px; }
+  .quick-action .qa-label { font-size: 12px; font-weight: 500; }
+
+  /* SUBJECT CARD */
+  .subj-card { border-radius: 12px; padding: 16px; color: white; position: relative; overflow: hidden; }
+  .subj-card::after { content: attr(data-icon); position: absolute; right: 12px; top: 8px; font-size: 40px; opacity: .2; }
+
+  /* TIMETABLE */
+  .tt-grid { display: grid; grid-template-columns: 80px repeat(6, 1fr); gap: 2px; }
+  .tt-cell { padding: 6px 8px; font-size: 11.5px; border-radius: 6px; min-height: 44px; display: flex; flex-direction: column; justify-content: center; }
+  .tt-time { background: var(--bg); color: var(--text-muted); font-size: 11px; text-align: center; }
+  .tt-empty { background: var(--bg); }
+  .tt-class { color: white; font-weight: 500; }
+
+  /* FEE CARD */
+  .fee-item { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border); }
+  .fee-item:last-child { border-bottom: none; }
+
+  /* NOTIFICATION PANEL */
+  .notif-panel { position: fixed; top: 60px; right: 24px; width: 320px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px; padding: 16px; box-shadow: 0 8px 24px rgba(0,0,0,.08); z-index: 200; display: none; }
+  .notif-panel.open { display: block; }
+  .notif-item { display: flex; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .notif-item:last-child { border-bottom: none; }
+  .notif-dot2 { width: 8px; height: 8px; border-radius: 50%; margin-top: 5px; flex-shrink: 0; }
+  .notif-text { font-size: 13px; }
+  .notif-time { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+  @media (max-width: 1100px) {
+    .stats-row { grid-template-columns: repeat(2, 1fr); }
+    .grid-2-1 { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<nav id="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">🎓</div>
+    <div class="logo-name">EduCore</div>
+    <div class="logo-sub">School ERP v2.0</div>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-label">Overview</div>
+    <div class="nav-item active" onclick="navigate('dashboard', this)">
+      <span class="nav-icon">🏠</span> Dashboard
+    </div>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-label">Academics</div>
+    <div class="nav-item" onclick="navigate('students', this)">
+      <span class="nav-icon">👨‍🎓</span> Students
+      <span class="nav-badge">1,248</span>
+    </div>
+    <div class="nav-item" onclick="navigate('teachers', this)">
+      <span class="nav-icon">👩‍🏫</span> Teachers
+    </div>
+    <div class="nav-item" onclick="navigate('classes', this)">
+      <span class="nav-icon">🏫</span> Classes
+    </div>
+    <div class="nav-item" onclick="navigate('timetable', this)">
+      <span class="nav-icon">📅</span> Timetable
+    </div>
+    <div class="nav-item" onclick="navigate('exams', this)">
+      <span class="nav-icon">📝</span> Exams & Results
+    </div>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-label">Administration</div>
+    <div class="nav-item" onclick="navigate('attendance', this)">
+      <span class="nav-icon">✅</span> Attendance
+    </div>
+    <div class="nav-item" onclick="navigate('fees', this)">
+      <span class="nav-icon">💳</span> Fee Management
+      <span class="nav-badge" style="background:#f59e0b">12</span>
+    </div>
+    <div class="nav-item" onclick="navigate('library', this)">
+      <span class="nav-icon">📚</span> Library
+    </div>
+    <div class="nav-item" onclick="navigate('transport', this)">
+      <span class="nav-icon">🚌</span> Transport
+    </div>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-label">Communication</div>
+    <div class="nav-item" onclick="navigate('announcements', this)">
+      <span class="nav-icon">📣</span> Announcements
+    </div>
+    <div class="nav-item" onclick="navigate('messages', this)">
+      <span class="nav-icon">💬</span> Messages
+      <span class="nav-badge">3</span>
+    </div>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-label">System</div>
+    <div class="nav-item" onclick="navigate('reports', this)">
+      <span class="nav-icon">📊</span> Reports
+    </div>
+    <div class="nav-item" onclick="navigate('settings', this)">
+      <span class="nav-icon">⚙️</span> Settings
+    </div>
+  </div>
+</nav>
+
+<!-- TOPBAR -->
+<header id="topbar">
+  <div class="topbar-title" id="topbar-title">Dashboard</div>
+  <input type="text" class="topbar-search" placeholder="🔍 Search students, staff...">
+  <div class="topbar-actions">
+    <button class="topbar-btn" onclick="toggleNotif()">🔔 <span class="notif-dot"></span></button>
+    <button class="topbar-btn" onclick="openModal('addStudentModal')">+ Add Student</button>
+    <div class="avatar" title="Admin">AD</div>
+  </div>
+</header>
+
+<!-- NOTIFICATION PANEL -->
+<div class="notif-panel" id="notifPanel">
+  <div style="font-size:14px;font-weight:600;margin-bottom:12px;">Notifications</div>
+  <div class="notif-item"><div class="notif-dot2" style="background:#ef4444"></div><div><div class="notif-text">Fee overdue: 12 students pending payment</div><div class="notif-time">2 hours ago</div></div></div>
+  <div class="notif-item"><div class="notif-dot2" style="background:#f59e0b"></div><div><div class="notif-text">Parent-Teacher meeting scheduled for Fri, Mar 20</div><div class="notif-time">5 hours ago</div></div></div>
+  <div class="notif-item"><div class="notif-dot2" style="background:#22c55e"></div><div><div class="notif-text">Annual exam timetable approved</div><div class="notif-time">Yesterday</div></div></div>
+  <div class="notif-item"><div class="notif-dot2" style="background:#4f8ef7"></div><div><div class="notif-text">3 new teacher applications received</div><div class="notif-time">2 days ago</div></div></div>
+</div>
+
+<!-- MAIN CONTENT -->
+<main id="main">
+
+  <!-- DASHBOARD VIEW -->
+  <div id="view-dashboard" class="view active">
+    <div class="section-header">
+      <div>
+        <div class="section-title">Good Morning, Principal 👋</div>
+        <div class="section-sub">Monday, March 17, 2026 — Term 2 Week 9</div>
+      </div>
+      <div style="display:flex;gap:10px;">
+        <button class="btn btn-secondary btn-sm">📥 Download Report</button>
+        <button class="btn btn-primary btn-sm" onclick="openModal('addStudentModal')">+ Add Student</button>
+      </div>
+    </div>
+
+    <!-- STATS -->
+    <div class="stats-row">
+      <div class="stat-card blue">
+        <div class="stat-icon">👨‍🎓</div>
+        <div class="stat-label">Total Students</div>
+        <div class="stat-value">1,248</div>
+        <div class="stat-change">▲ +28 this term</div>
+      </div>
+      <div class="stat-card green">
+        <div class="stat-icon">👩‍🏫</div>
+        <div class="stat-label">Teaching Staff</div>
+        <div class="stat-value">87</div>
+        <div class="stat-change">▲ +3 new joins</div>
+      </div>
+      <div class="stat-card orange">
+        <div class="stat-icon">✅</div>
+        <div class="stat-label">Today's Attendance</div>
+        <div class="stat-value">94.2%</div>
+        <div class="stat-change down">▼ -1.3% vs yesterday</div>
+      </div>
+      <div class="stat-card purple">
+        <div class="stat-icon">💳</div>
+        <div class="stat-label">Fee Collection</div>
+        <div class="stat-value">₹18.4L</div>
+        <div class="stat-change">▲ 87% collected</div>
+      </div>
+    </div>
+
+    <!-- CHARTS + ACTIVITY -->
+    <div class="grid-2-1" style="margin-bottom:16px;">
+      <div class="card">
+        <div class="card-title">📊 Monthly Attendance Overview</div>
+        <div class="bar-chart" id="barChart"></div>
+        <div id="barLabels" style="display:flex;gap:6px;margin-top:8px;"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">🥧 Class Distribution</div>
+        <div style="display:flex;align-items:center;gap:20px;">
+          <svg width="110" height="110" viewBox="0 0 36 36" id="donutSvg"></svg>
+          <div id="donutLegend" style="font-size:12px;display:flex;flex-direction:column;gap:6px;"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-2" style="margin-bottom:16px;">
+      <!-- RECENT STUDENTS -->
+      <div class="card">
+        <div class="card-title" style="justify-content:space-between;">
+          <span>👨‍🎓 Recent Admissions</span>
+          <button class="btn btn-secondary btn-sm" onclick="navigate('students', document.querySelector('[onclick*=students]'))">View All</button>
+        </div>
+        <table class="data-table">
+          <thead><tr><th>Student</th><th>Class</th><th>Date</th><th>Status</th></tr></thead>
+          <tbody id="recentStudents"></tbody>
+        </table>
+      </div>
+      <!-- QUICK ACTIONS -->
+      <div class="card">
+        <div class="card-title">⚡ Quick Actions</div>
+        <div class="grid-3" style="gap:10px;">
+          <div class="quick-action" onclick="navigate('attendance', document.querySelector('[onclick*=attendance]'))"><div class="qa-icon">✅</div><div class="qa-label">Mark Attendance</div></div>
+          <div class="quick-action" onclick="openModal('addStudentModal')"><div class="qa-icon">➕</div><div class="qa-label">Admit Student</div></div>
+          <div class="quick-action" onclick="navigate('fees', document.querySelector('[onclick*=fees]'))"><div class="qa-icon">💳</div><div class="qa-label">Collect Fee</div></div>
+          <div class="quick-action" onclick="navigate('exams', document.querySelector('[onclick*=exams]'))"><div class="qa-icon">📝</div><div class="qa-label">Enter Marks</div></div>
+          <div class="quick-action" onclick="navigate('announcements', document.querySelector('[onclick*=announcements]'))"><div class="qa-icon">📣</div><div class="qa-label">Announce</div></div>
+          <div class="quick-action" onclick="navigate('reports', document.querySelector('[onclick*=reports]'))"><div class="qa-icon">📊</div><div class="qa-label">Run Report</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CALENDAR + ACTIVITY -->
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title">📅 School Calendar — March 2026</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <button class="btn btn-secondary btn-sm">‹ Feb</button>
+          <span style="font-size:14px;font-weight:600;">March 2026</span>
+          <button class="btn btn-secondary btn-sm">Apr ›</button>
+        </div>
+        <div class="cal-header" id="calHeader"></div>
+        <div class="cal-grid" id="calGrid"></div>
+        <div style="margin-top:14px;display:flex;flex-direction:column;gap:6px;" id="events"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">🕐 Recent Activity</div>
+        <div id="recentActivity"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STUDENTS VIEW -->
+  <div id="view-students" class="view">
+    <div class="section-header">
+      <div>
+        <div class="section-title">Students</div>
+        <div class="section-sub">1,248 enrolled students · 3 new this week</div>
+      </div>
+      <div style="display:flex;gap:10px;">
+        <select class="form-control" style="width:130px;padding:7px 10px;">
+          <option>All Classes</option>
+          <option>Grade 6</option><option>Grade 7</option><option>Grade 8</option>
+          <option>Grade 9</option><option>Grade 10</option><option>Grade 11</option><option>Grade 12</option>
+        </select>
+        <button class="btn btn-primary" onclick="openModal('addStudentModal')">+ Add Student</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="tabs">
+        <div class="tab active" onclick="switchTab(this,'all-students')">All Students</div>
+        <div class="tab" onclick="switchTab(this,'active-students')">Active</div>
+        <div class="tab" onclick="switchTab(this,'inactive-students')">Inactive</div>
+        <div class="tab" onclick="switchTab(this,'alumni-students')">Alumni</div>
+      </div>
+      <div class="tab-content active" id="all-students">
+        <table class="data-table" id="studentsTable">
+          <thead><tr><th>Student</th><th>Admission No.</th><th>Class</th><th>Parent</th><th>Attendance</th><th>Fee Status</th><th>Action</th></tr></thead>
+          <tbody id="studentsBody"></tbody>
+        </table>
+      </div>
+      <div class="tab-content" id="active-students"><p style="padding:20px;color:var(--text-muted);">Showing active students...</p></div>
+      <div class="tab-content" id="inactive-students"><p style="padding:20px;color:var(--text-muted);">No inactive students.</p></div>
+      <div class="tab-content" id="alumni-students"><p style="padding:20px;color:var(--text-muted);">Alumni records coming soon.</p></div>
+    </div>
+  </div>
+
+  <!-- TEACHERS VIEW -->
+  <div id="view-teachers" class="view">
+    <div class="section-header">
+      <div><div class="section-title">Teaching Staff</div><div class="section-sub">87 staff members · 5 departments</div></div>
+      <button class="btn btn-primary">+ Add Staff</button>
+    </div>
+    <div class="grid-3" style="margin-bottom:20px;">
+      <div class="card" style="text-align:center;"><div style="font-size:28px;font-weight:600;color:var(--accent);">87</div><div style="font-size:12px;color:var(--text-muted);margin-top:4px;">Total Staff</div></div>
+      <div class="card" style="text-align:center;"><div style="font-size:28px;font-weight:600;color:var(--success);">5</div><div style="font-size:12px;color:var(--text-muted);margin-top:4px;">Departments</div></div>
+      <div class="card" style="text-align:center;"><div style="font-size:28px;font-weight:600;color:var(--warning);">3</div><div style="font-size:12px;color:var(--text-muted);margin-top:4px;">On Leave Today</div></div>
+    </div>
+    <div class="card">
+      <table class="data-table">
+        <thead><tr><th>Teacher</th><th>Employee ID</th><th>Department</th><th>Subject</th><th>Classes</th><th>Status</th></tr></thead>
+        <tbody id="teachersBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- CLASSES VIEW -->
+  <div id="view-classes" class="view">
+    <div class="section-header">
+      <div><div class="section-title">Classes & Sections</div><div class="section-sub">21 classes across 7 grades</div></div>
+      <button class="btn btn-primary">+ Add Class</button>
+    </div>
+    <div class="grid-3" id="classCards"></div>
+  </div>
+
+  <!-- TIMETABLE VIEW -->
+  <div id="view-timetable" class="view">
+    <div class="section-header">
+      <div><div class="section-title">Weekly Timetable</div><div class="section-sub">Grade 10-A · Term 2 · 2025–26</div></div>
+      <div style="display:flex;gap:10px;">
+        <select class="form-control" style="width:140px;padding:7px 10px;"><option>Grade 10-A</option><option>Grade 10-B</option><option>Grade 9-A</option></select>
+        <button class="btn btn-secondary btn-sm">🖨 Print</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="tt-grid" id="timetableGrid"></div>
+    </div>
+  </div>
+
+  <!-- EXAMS VIEW -->
+  <div id="view-exams" class="view">
+    <div class="section-header">
+      <div><div class="section-title">Exams & Results</div><div class="section-sub">Annual Examination 2026</div></div>
+      <button class="btn btn-primary" onclick="openModal('addExamModal')">+ Schedule Exam</button>
+    </div>
+    <div class="grid-2" style="margin-bottom:20px;">
+      <div class="card">
+        <div class="card-title">📅 Upcoming Exams</div>
+        <div id="examsList"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">📈 Grade Distribution — Term 1</div>
+        <div class="bar-chart" id="gradeChart" style="height:100px;"></div>
+        <div id="gradeLabels" style="display:flex;gap:6px;margin-top:6px;"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">🏆 Top Performers — Grade 10</div>
+      <table class="data-table">
+        <thead><tr><th>Rank</th><th>Student</th><th>Class</th><th>Total Marks</th><th>Percentage</th><th>Grade</th></tr></thead>
+        <tbody id="topStudents"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ATTENDANCE VIEW -->
+  <div id="view-attendance" class="view">
+    <div class="section-header">
+      <div><div class="section-title">Attendance Management</div><div class="section-sub">Today: Monday, March 17, 2026</div></div>
+      <button class="btn btn-primary" onclick="openModal('markAttModal')">✅ Mark Attendance</button>
+    </div>
+    <div class="stats-row" style="grid-template-columns:repeat(4,1fr);">
+      <div class="stat-card green"><div class="stat-label">Present Today</div><div class="stat-value">1,176</div><div class="stat-change">94.2%</div></div>
+      <div class="stat-card orange"><div class="stat-label">Absent</div><div class="stat-value">72</div><div class="stat-change down">5.8%</div></div>
+      <div class="stat-card blue"><div class="stat-label">Late Arrivals</div><div class="stat-value">18</div><div class="stat-change">1.4%</div></div>
+      <div class="stat-card purple"><div class="stat-label">On Leave</div><div class="stat-value">24</div><div class="stat-change">Approved</div></div>
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title">📋 Class-wise Attendance</div>
+        <table class="data-table">
+          <thead><tr><th>Class</th><th>Total</th><th>Present</th><th>Absent</th><th>Rate</th></tr></thead>
+          <tbody id="classAttBody"></tbody>
+        </table>
+      </div>
+      <div class="card">
+        <div class="card-title">🗓 Annual Attendance Heatmap</div>
+        <div id="heatmap" style="display:flex;gap:3px;flex-wrap:wrap;margin-bottom:12px;"></div>
+        <div style="display:flex;gap:8px;align-items:center;font-size:11px;color:var(--text-muted);">
+          <span>Less</span>
+          <div style="display:flex;gap:2px;">
+            <div style="width:12px;height:12px;border-radius:2px;background:#e2e8f0;"></div>
+            <div style="width:12px;height:12px;border-radius:2px;background:#bfdbfe;"></div>
+            <div style="width:12px;height:12px;border-radius:2px;background:#60a5fa;"></div>
+            <div style="width:12px;height:12px;border-radius:2px;background:#2563eb;"></div>
+            <div style="width:12px;height:12px;border-radius:2px;background:#1e3a8a;"></div>
+          </div>
+          <span>More</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FEE MANAGEMENT VIEW -->
+  <div id="view-fees" class="view">
+    <div class="section-header">
+      <div><div class="section-title">Fee Management</div><div class="section-sub">Term 2 · 2025–26</div></div>
+      <button class="btn btn-primary" onclick="openModal('collectFeeModal')">+ Collect Fee</button>
+    </div>
+    <div class="stats-row" style="grid-template-columns:repeat(4,1fr);margin-bottom:20px;">
+      <div class="stat-card blue"><div class="stat-label">Total Due</div><div class="stat-value">₹21.2L</div><div class="stat-change">This term</div></div>
+      <div class="stat-card green"><div class="stat-label">Collected</div><div class="stat-value">₹18.4L</div><div class="stat-change">87% collected</div></div>
+      <div class="stat-card orange"><div class="stat-label">Pending</div><div class="stat-value">₹2.8L</div><div class="stat-change down">12 students</div></div>
+      <div class="stat-card purple"><div class="stat-label">Scholarships</div><div class="stat-value">₹1.4L</div><div class="stat-change">34 students</div></div>
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title">💳 Recent Transactions</div>
+        <table class="data-table">
+          <thead><tr><th>Student</th><th>Amount</th><th>Type</th><th>Date</th><th>Method</th><th>Status</th></tr></thead>
+          <tbody id="feeTransactions"></tbody>
+        </table>
+      </div>
+      <div class="card">
+        <div class="card-title">⚠️ Pending Dues</div>
+        <table class="data-table">
+          <thead><tr><th>Student</th><th>Class</th><th>Amount</th><th>Overdue By</th></tr></thead>
+          <tbody id="pendingFees"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- LIBRARY VIEW -->
+  <div id="view-library" class="view">
+    <div class="section-header">
+      <div><div class="section-title">Library Management</div><div class="section-sub">4,820 books · 310 borrowed</div></div>
+      <button class="btn btn-primary">+ Add Book</button>
+    </div>
+    <div class="grid-3" style="margin-bottom:20px;">
+      <div class="card" style="text-align:center;"><div style="font-size:28px;font-weight:600;color:var(--accent);">4,820</div><div style="font-size:12px;color:var(--text-muted);margin-top:4px;">Total Books</div></div>
+      <div class="card" style="text-align:center;"><div style="font-size:28px;font-weight:600;color:var(--accent-warm);">310</div><div style="font-size:12px;color:var(--text-muted);margin-top:4px;">Borrowed</div></div>
+      <div class="card" style="text-align:center;"><div style="font-size:28px;font-weight:600;color:var(--danger);">22</div><div style="font-size:12px;color:var(--text-muted);margin-top:4px;">Overdue</div></div>
+    </div>
+    <div class="card">
+      <div class="card-title">📚 Recently Borrowed</div>
+      <table class="data-table">
+        <thead><tr><th>Book Title</th><th>Author</th><th>Borrower</th><th>Issue Date</th><th>Due Date</th><th>Status</th></tr></thead>
+        <tbody id="libraryBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- TRANSPORT VIEW -->
+  <div id="view-transport" class="view">
+    <div class="section-header">
+      <div><div class="section-title">Transport Management</div><div class="section-sub">12 buses · 480 students covered</div></div>
+      <button class="btn btn-primary">+ Add Route</button>
+    </div>
+    <div class="card">
+      <table class="data-table">
+        <thead><tr><th>Route</th><th>Bus No.</th><th>Driver</th><th>Students</th><th>Status</th><th>Departure</th></tr></thead>
+        <tbody id="transportBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ANNOUNCEMENTS VIEW -->
+  <div id="view-announcements" class="view">
+    <div class="section-header">
+      <div><div class="section-title">Announcements</div></div>
+      <button class="btn btn-primary" onclick="openModal('addAnnModal')">+ New Announcement</button>
+    </div>
+    <div class="grid-2-1">
+      <div class="card" id="annList"></div>
+      <div class="card">
+        <div class="card-title">📌 Notice Board</div>
+        <div id="noticeBoard"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MESSAGES VIEW -->
+  <div id="view-messages" class="view">
+    <div class="section-header"><div class="section-title">Messages</div></div>
+    <div class="card" style="padding:40px;text-align:center;color:var(--text-muted);">
+      <div style="font-size:48px;margin-bottom:12px;">💬</div>
+      <div style="font-size:16px;font-weight:500;margin-bottom:8px;">Messaging Module</div>
+      <div style="font-size:13px;">Internal communication with teachers and parents</div>
+      <button class="btn btn-primary" style="margin-top:16px;">Compose Message</button>
+    </div>
+  </div>
+
+  <!-- REPORTS VIEW -->
+  <div id="view-reports" class="view">
+    <div class="section-header"><div class="section-title">Reports & Analytics</div></div>
+    <div class="grid-3">
+      <div class="card" style="cursor:pointer;border:2px dashed var(--border);background:var(--bg);text-align:center;padding:30px;" onclick="alert('Generating attendance report...')">
+        <div style="font-size:32px;">📊</div>
+        <div style="font-size:14px;font-weight:600;margin-top:8px;">Attendance Report</div>
+        <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">Daily, weekly, monthly</div>
+      </div>
+      <div class="card" style="cursor:pointer;border:2px dashed var(--border);background:var(--bg);text-align:center;padding:30px;" onclick="alert('Generating fee report...')">
+        <div style="font-size:32px;">💰</div>
+        <div style="font-size:14px;font-weight:600;margin-top:8px;">Fee Collection Report</div>
+        <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">Term-wise analysis</div>
+      </div>
+      <div class="card" style="cursor:pointer;border:2px dashed var(--border);background:var(--bg);text-align:center;padding:30px;" onclick="alert('Generating academic report...')">
+        <div style="font-size:32px;">🎓</div>
+        <div style="font-size:14px;font-weight:600;margin-top:8px;">Academic Report</div>
+        <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">Results & progress</div>
+      </div>
+      <div class="card" style="cursor:pointer;border:2px dashed var(--border);background:var(--bg);text-align:center;padding:30px;">
+        <div style="font-size:32px;">🚌</div>
+        <div style="font-size:14px;font-weight:600;margin-top:8px;">Transport Report</div>
+        <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">Route & usage</div>
+      </div>
+      <div class="card" style="cursor:pointer;border:2px dashed var(--border);background:var(--bg);text-align:center;padding:30px;">
+        <div style="font-size:32px;">📚</div>
+        <div style="font-size:14px;font-weight:600;margin-top:8px;">Library Report</div>
+        <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">Borrowed & overdue</div>
+      </div>
+      <div class="card" style="cursor:pointer;border:2px dashed var(--border);background:var(--bg);text-align:center;padding:30px;">
+        <div style="font-size:32px;">👨‍🏫</div>
+        <div style="font-size:14px;font-weight:600;margin-top:8px;">Staff Report</div>
+        <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">Performance overview</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SETTINGS VIEW -->
+  <div id="view-settings" class="view">
+    <div class="section-header"><div class="section-title">Settings</div></div>
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title">🏫 School Information</div>
+        <div class="form-group"><label class="form-label">School Name</label><input class="form-control" value="Greenfield Public School"></div>
+        <div class="form-group"><label class="form-label">Principal Name</label><input class="form-control" value="Dr. Ramesh Kumar"></div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Founded Year</label><input class="form-control" value="1994"></div>
+          <div class="form-group"><label class="form-label">Board</label><select class="form-control"><option>CBSE</option><option>ICSE</option><option>State Board</option></select></div>
+        </div>
+        <button class="btn btn-primary">Save Changes</button>
+      </div>
+      <div class="card">
+        <div class="card-title">⚙️ System Preferences</div>
+        <div class="form-group"><label class="form-label">Academic Year</label><input class="form-control" value="2025-26"></div>
+        <div class="form-group"><label class="form-label">Current Term</label><select class="form-control"><option>Term 1</option><option selected>Term 2</option><option>Term 3</option></select></div>
+        <div class="form-group"><label class="form-label">School Timing</label><div class="form-row"><input class="form-control" value="8:00 AM"><input class="form-control" value="3:30 PM"></div></div>
+        <button class="btn btn-primary">Update Settings</button>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- MODALS -->
+<div class="modal-backdrop" id="addStudentModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Admit New Student</div>
+      <button class="modal-close" onclick="closeModal('addStudentModal')">✕</button>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">First Name</label><input class="form-control" placeholder="Enter first name"></div>
+      <div class="form-group"><label class="form-label">Last Name</label><input class="form-control" placeholder="Enter last name"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Date of Birth</label><input class="form-control" type="date"></div>
+      <div class="form-group"><label class="form-label">Gender</label><select class="form-control"><option>Male</option><option>Female</option><option>Other</option></select></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Class</label><select class="form-control"><option>Grade 6</option><option>Grade 7</option><option>Grade 8</option><option>Grade 9</option><option>Grade 10</option><option>Grade 11</option><option>Grade 12</option></select></div>
+      <div class="form-group"><label class="form-label">Section</label><select class="form-control"><option>A</option><option>B</option><option>C</option></select></div>
+    </div>
+    <div class="form-group"><label class="form-label">Parent/Guardian Name</label><input class="form-control" placeholder="Parent full name"></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Phone</label><input class="form-control" placeholder="+91 00000 00000"></div>
+      <div class="form-group"><label class="form-label">Email</label><input class="form-control" type="email" placeholder="parent@email.com"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('addStudentModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="admitStudent()">Admit Student</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="collectFeeModal">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">Collect Fee</div><button class="modal-close" onclick="closeModal('collectFeeModal')">✕</button></div>
+    <div class="form-group"><label class="form-label">Student Name / ID</label><input class="form-control" placeholder="Search student..."></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Fee Type</label><select class="form-control"><option>Tuition Fee</option><option>Transport Fee</option><option>Library Fee</option><option>Exam Fee</option></select></div>
+      <div class="form-group"><label class="form-label">Amount (₹)</label><input class="form-control" type="number" placeholder="0.00"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Payment Method</label><select class="form-control"><option>Cash</option><option>Online Transfer</option><option>Cheque</option><option>DD</option></select></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('collectFeeModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="collectFee()">Collect & Receipt</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="markAttModal">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">Mark Attendance</div><button class="modal-close" onclick="closeModal('markAttModal')">✕</button></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Class</label><select class="form-control"><option>Grade 10-A</option><option>Grade 10-B</option></select></div>
+      <div class="form-group"><label class="form-label">Date</label><input class="form-control" type="date" value="2026-03-17"></div>
+    </div>
+    <div style="font-size:13px;color:var(--text-muted);margin-bottom:12px;">Students will be marked present by default. Tap to toggle.</div>
+    <div id="attStudList" style="display:flex;flex-wrap:wrap;gap:8px;max-height:200px;overflow-y:auto;"></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('markAttModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitAtt()">Submit Attendance</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="addAnnModal">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">New Announcement</div><button class="modal-close" onclick="closeModal('addAnnModal')">✕</button></div>
+    <div class="form-group"><label class="form-label">Title</label><input class="form-control" placeholder="Announcement title"></div>
+    <div class="form-group"><label class="form-label">Content</label><textarea class="form-control" rows="4" placeholder="Write announcement..."></textarea></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Target Audience</label><select class="form-control"><option>All</option><option>Students</option><option>Teachers</option><option>Parents</option></select></div>
+      <div class="form-group"><label class="form-label">Priority</label><select class="form-control"><option>Normal</option><option>High</option><option>Urgent</option></select></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('addAnnModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="postAnn()">Post Announcement</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="addExamModal">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">Schedule Exam</div><button class="modal-close" onclick="closeModal('addExamModal')">✕</button></div>
+    <div class="form-group"><label class="form-label">Exam Name</label><input class="form-control" placeholder="e.g. Unit Test 1"></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Class</label><select class="form-control"><option>Grade 10</option><option>Grade 11</option><option>Grade 12</option></select></div>
+      <div class="form-group"><label class="form-label">Subject</label><select class="form-control"><option>Mathematics</option><option>Science</option><option>English</option><option>Social Studies</option></select></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Date</label><input class="form-control" type="date"></div>
+      <div class="form-group"><label class="form-label">Max Marks</label><input class="form-control" type="number" placeholder="100"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('addExamModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="closeModal('addExamModal');alert('Exam scheduled!')">Schedule</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===================== DATA =====================
+const STUDENTS = [
+  {id:'GF001',name:'Aarav Sharma',class:'10-A',parent:'Rajesh Sharma',att:'97%',fee:'Paid',color:'#4f8ef7'},
+  {id:'GF002',name:'Priya Mehta',class:'10-B',parent:'Suresh Mehta',att:'92%',fee:'Paid',color:'#22c55e'},
+  {id:'GF003',name:'Rohan Singh',class:'9-A',parent:'Anil Singh',att:'88%',fee:'Pending',color:'#f97316'},
+  {id:'GF004',name:'Ananya Patel',class:'10-A',parent:'Dinesh Patel',att:'99%',fee:'Paid',color:'#a855f7'},
+  {id:'GF005',name:'Karthik Reddy',class:'11-B',parent:'Venkat Reddy',att:'85%',fee:'Overdue',color:'#ef4444'},
+  {id:'GF006',name:'Sneha Joshi',class:'9-B',parent:'Mahesh Joshi',att:'96%',fee:'Paid',color:'#06b6d4'},
+  {id:'GF007',name:'Arjun Nair',class:'12-A',parent:'Suresh Nair',att:'91%',fee:'Paid',color:'#8b5cf6'},
+  {id:'GF008',name:'Divya Rao',class:'8-A',parent:'Mohan Rao',att:'94%',fee:'Pending',color:'#f59e0b'},
+];
+
+const TEACHERS = [
+  {id:'T001',name:'Dr. Savitha Iyer',dept:'Mathematics',subj:'Algebra, Calculus',classes:'10-A,11-B,12-A',status:'Active'},
+  {id:'T002',name:'Mr. Arun Kumar',dept:'Science',subj:'Physics',classes:'9-A,10-A,10-B',status:'Active'},
+  {id:'T003',name:'Ms. Preethi Nair',dept:'English',subj:'Literature, Grammar',classes:'8-A,9-B,10-B',status:'On Leave'},
+  {id:'T004',name:'Mr. Ramesh Babu',dept:'Social Studies',subj:'History, Geography',classes:'7-A,8-B,9-A',status:'Active'},
+  {id:'T005',name:'Ms. Kavitha Devi',dept:'Science',subj:'Biology, Chemistry',classes:'11-A,12-A,12-B',status:'Active'},
+  {id:'T006',name:'Mr. Sunil Verma',dept:'Computer Science',subj:'Programming, IT',classes:'9-A,10-A,11-A',status:'Active'},
+];
+
+const MONTHS = ['Jul','Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar'];
+const ATT_DATA = [92,88,95,91,87,93,89,96,94];
+const GRADES = ['A+','A','B+','B','C','D'];
+const GRADE_DATA = [18,32,28,14,6,2];
+const GRADE_COLORS = ['#22c55e','#4f8ef7','#a855f7','#f59e0b','#f97316','#ef4444'];
+
+const CLASS_DIST = [
+  {label:'Grade 6-8',val:320,color:'#4f8ef7'},
+  {label:'Grade 9-10',val:480,color:'#22c55e'},
+  {label:'Grade 11-12',val:280,color:'#f97316'},
+  {label:'Other',val:168,color:'#a855f7'},
+];
+
+const EVENTS = [
+  {day:20,name:'Parent-Teacher Meeting',color:'#4f8ef7'},
+  {day:25,name:'Science Exhibition',color:'#22c55e'},
+  {day:28,name:'Annual Sports Day',color:'#f97316'},
+  {day:31,name:'End of Term',color:'#a855f7'},
+];
+
+const FEE_TXN = [
+  {s:'Aarav Sharma',amt:'₹12,500',type:'Tuition',date:'Mar 15',method:'Online',status:'Paid'},
+  {s:'Priya Mehta',amt:'₹12,500',type:'Tuition',date:'Mar 14',method:'Cash',status:'Paid'},
+  {s:'Ananya Patel',amt:'₹3,200',type:'Transport',date:'Mar 13',method:'Online',status:'Paid'},
+  {s:'Karthik Reddy',amt:'₹12,500',type:'Tuition',date:'Mar 12',method:'Cheque',status:'Pending'},
+  {s:'Divya Rao',amt:'₹2,800',type:'Exam Fee',date:'Mar 11',method:'Cash',status:'Paid'},
+];
+
+const PENDING = [
+  {s:'Rohan Singh',class:'9-A',amt:'₹12,500',overdue:'8 days'},
+  {s:'Karthik Reddy',class:'11-B',amt:'₹15,800',overdue:'22 days'},
+  {s:'Aditya Shah',class:'7-B',amt:'₹11,200',overdue:'35 days'},
+];
+
+const EXAMS = [
+  {name:'Math Unit Test 3',class:'Grade 10',date:'Mar 20',marks:50,status:'Upcoming'},
+  {name:'Science Practical',class:'Grade 11-12',date:'Mar 22',marks:30,status:'Upcoming'},
+  {name:'English Essay',class:'Grade 9',date:'Mar 24',marks:25,status:'Upcoming'},
+  {name:'Annual Exam',class:'Grade 10-12',date:'Apr 1',marks:100,status:'Scheduled'},
+];
+
+const TOP_STUDENTS = [
+  {rank:1,name:'Ananya Patel',class:'10-A',total:485,pct:'97.0%',grade:'A+'},
+  {rank:2,name:'Aarav Sharma',class:'10-A',total:478,pct:'95.6%',grade:'A+'},
+  {rank:3,name:'Sneha Joshi',class:'10-B',total:471,pct:'94.2%',grade:'A+'},
+  {rank:4,name:'Priya Mehta',class:'10-B',total:460,pct:'92.0%',grade:'A'},
+  {rank:5,name:'Arjun Nair',class:'10-A',total:452,pct:'90.4%',grade:'A'},
+];
+
+const LIBRARY_BOOKS = [
+  {title:'Wings of Fire',author:'A.P.J Abdul Kalam',borrower:'Aarav Sharma',issue:'Mar 10',due:'Mar 24',status:'Active'},
+  {title:'The Alchemist',author:'Paulo Coelho',borrower:'Priya Mehta',issue:'Mar 8',due:'Mar 22',status:'Overdue'},
+  {title:'Python Programming',author:'Eric Matthes',borrower:'Arjun Nair',issue:'Mar 5',due:'Mar 19',status:'Active'},
+  {title:'NCERT Chemistry 12',author:'NCERT',borrower:'Sneha Joshi',issue:'Mar 1',due:'Mar 15',status:'Returned'},
+];
+
+const TRANSPORT = [
+  {route:'Route 1 — Koramangala',bus:'KA01-1234',driver:'Ramu Kumar',students:42,status:'En Route',dep:'7:15 AM'},
+  {route:'Route 2 — Whitefield',bus:'KA01-5678',driver:'Suresh B.',students:38,status:'At School',dep:'7:30 AM'},
+  {route:'Route 3 — Jayanagar',bus:'KA01-9012',driver:'Venkat R.',students:45,status:'En Route',dep:'7:00 AM'},
+  {route:'Route 4 — HSR Layout',bus:'KA01-3456',driver:'Mohan S.',students:36,status:'Delayed',dep:'7:45 AM'},
+];
+
+const CLASS_ATT = [
+  {cls:'Grade 6-A',total:42,pres:40,abs:2,rate:95.2},
+  {cls:'Grade 7-B',total:40,pres:36,abs:4,rate:90.0},
+  {cls:'Grade 8-A',total:38,pres:37,abs:1,rate:97.4},
+  {cls:'Grade 9-A',total:44,pres:41,abs:3,rate:93.2},
+  {cls:'Grade 10-A',total:45,pres:43,abs:2,rate:95.6},
+  {cls:'Grade 11-B',total:36,pres:32,abs:4,rate:88.9},
+  {cls:'Grade 12-A',total:38,pres:35,abs:3,rate:92.1},
+];
+
+const ANNOUNCEMENTS = [
+  {title:'Annual Sports Day — Registration Open',content:'Students wishing to participate in Annual Sports Day 2026 must register by March 22.',date:'Mar 16, 2026',audience:'All',priority:'high'},
+  {title:'Parent-Teacher Meeting — March 20',content:'All parents are requested to attend the PTM on Friday, March 20th between 9 AM – 1 PM.',date:'Mar 15, 2026',audience:'Parents',priority:'normal'},
+  {title:'Science Exhibition — Project Submissions',content:'Final projects for the inter-school Science Exhibition to be submitted to the Science Lab by March 23.',date:'Mar 14, 2026',audience:'Students',priority:'normal'},
+  {title:'Library Closure — March 18',content:'Library will remain closed on March 18 (Tuesday) for inventory audit.',date:'Mar 13, 2026',audience:'All',priority:'normal'},
+];
+
+const ACTIVITY = [
+  {text:'New student Vikram Shah admitted to Grade 8-B',time:'10 min ago',color:'#22c55e'},
+  {text:'Fee collected for Aarav Sharma — ₹12,500',time:'25 min ago',color:'#4f8ef7'},
+  {text:'Attendance marked for Grade 10-A (100%)',time:'1 hr ago',color:'#a855f7'},
+  {text:'Exam timetable published for Term 2',time:'2 hrs ago',color:'#f97316'},
+  {text:'3 new library books added',time:'3 hrs ago',color:'#06b6d4'},
+  {text:'Parent-Teacher meeting reminder sent',time:'Yesterday',color:'#f59e0b'},
+];
+
+// ===================== RENDER =====================
+function init() {
+  renderBarChart();
+  renderDonut();
+  renderCalendar();
+  renderRecentStudents();
+  renderActivity();
+  renderStudentsTable();
+  renderTeachers();
+  renderClasses();
+  renderTimetable();
+  renderExams();
+  renderTopStudents();
+  renderGradeChart();
+  renderClassAtt();
+  renderHeatmap();
+  renderFees();
+  renderLibrary();
+  renderTransport();
+  renderAnnouncements();
+  populateAttModal();
+}
+
+function renderBarChart() {
+  const chart = document.getElementById('barChart');
+  const labels = document.getElementById('barLabels');
+  chart.innerHTML = '';
+  labels.innerHTML = '';
+  const max = Math.max(...ATT_DATA);
+  ATT_DATA.forEach((v, i) => {
+    const wrap = document.createElement('div'); wrap.className = 'bar-wrap'; wrap.style.flex = '1';
+    const bar = document.createElement('div'); bar.className = 'bar';
+    bar.style.height = (v/max*100)+'%';
+    bar.style.background = i === ATT_DATA.length-1 ? '#4f8ef7' : '#dbeafe';
+    bar.title = MONTHS[i]+': '+v+'%';
+    wrap.appendChild(bar); chart.appendChild(wrap);
+
+    const lw = document.createElement('div'); lw.className = 'bar-wrap';
+    const l = document.createElement('div'); l.className = 'bar-label'; l.textContent = MONTHS[i];
+    lw.appendChild(l); labels.appendChild(lw);
+  });
+}
+
+function renderDonut() {
+  const svg = document.getElementById('donutSvg');
+  const legend = document.getElementById('donutLegend');
+  const total = CLASS_DIST.reduce((a,b)=>a+b.val,0);
+  let offset = 25;
+  const r = 15.9155; const cx = 18; const cy = 18;
+  svg.innerHTML = `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#f1f5f9" stroke-width="3.5"/>`;
+  CLASS_DIST.forEach(d => {
+    const pct = d.val/total*100;
+    const circ = 2*Math.PI*r;
+    const dash = (pct/100)*circ; const gap = circ - dash;
+    const circle = document.createElementNS('http://www.w3.org/2000/svg','circle');
+    circle.setAttribute('cx',cx); circle.setAttribute('cy',cy); circle.setAttribute('r',r);
+    circle.setAttribute('fill','none'); circle.setAttribute('stroke',d.color);
+    circle.setAttribute('stroke-width','3.5');
+    circle.setAttribute('stroke-dasharray',`${dash} ${gap}`);
+    circle.setAttribute('stroke-dashoffset',-(offset/100)*circ);
+    svg.appendChild(circle); offset += pct;
+
+    const li = document.createElement('div'); li.style.display='flex';li.style.alignItems='center';li.style.gap='6px';
+    li.innerHTML = `<div style="width:10px;height:10px;border-radius:2px;background:${d.color};flex-shrink:0;"></div><span>${d.label}</span><span style="margin-left:auto;font-weight:600;">${d.val}</span>`;
+    legend.appendChild(li);
+  });
+}
+
+function renderCalendar() {
+  const hdr = document.getElementById('calHeader');
+  const grid = document.getElementById('calGrid');
+  const evs = document.getElementById('events');
+  const days = ['Su','Mo','Tu','We','Th','Fr','Sa'];
+  hdr.innerHTML = days.map(d=>`<div class="cal-dname">${d}</div>`).join('');
+
+  // March 2026 starts on Sunday (day 0)
+  const firstDay = 0; const daysInMonth = 31;
+  const eventDays = EVENTS.map(e=>e.day);
+  let cells = '';
+  for(let i=0;i<firstDay;i++) cells += `<div class="cal-day other-month">${31-firstDay+i+1}</div>`;
+  for(let d=1;d<=daysInMonth;d++) {
+    const isToday = d===17;
+    const hasEv = eventDays.includes(d);
+    cells += `<div class="cal-day${isToday?' today':''}${hasEv&&!isToday?' has-event':''}" onclick="showEvent(${d})">${d}</div>`;
+  }
+  grid.innerHTML = cells;
+
+  evs.innerHTML = EVENTS.map(e=>`<div style="display:flex;align-items:center;gap:8px;padding:4px 0;font-size:12px;"><div style="width:8px;height:8px;border-radius:50%;background:${e.color};flex-shrink:0;"></div><span><strong>Mar ${e.day}</strong> — ${e.name}</span></div>`).join('');
+}
+
+function showEvent(d) {
+  const ev = EVENTS.find(e=>e.day===d);
+  if(ev) alert('📅 '+ev.name+'\nDate: March '+d+', 2026');
+}
+
+function renderRecentStudents() {
+  const tbody = document.getElementById('recentStudents');
+  tbody.innerHTML = STUDENTS.slice(0,5).map(s=>`
+    <tr>
+      <td><div style="display:flex;align-items:center;"><div class="avatar-sm" style="background:${s.color}20;color:${s.color};">${s.name.split(' ').map(w=>w[0]).join('')}</div>${s.name}</div></td>
+      <td>${s.class}</td>
+      <td>Mar 15, 2026</td>
+      <td><span class="badge ${s.fee==='Paid'?'green':s.fee==='Pending'?'orange':'red'}">${s.fee}</span></td>
+    </tr>`).join('');
+}
+
+function renderActivity() {
+  const el = document.getElementById('recentActivity');
+  el.innerHTML = ACTIVITY.map(a=>`<div class="timeline-item"><div class="tl-dot" style="background:${a.color};"></div><div class="tl-content"><div class="tl-title">${a.text}</div><div class="tl-time">${a.time}</div></div></div>`).join('');
+}
+
+function renderStudentsTable() {
+  const tbody = document.getElementById('studentsBody');
+  tbody.innerHTML = STUDENTS.map(s=>`
+    <tr>
+      <td><div style="display:flex;align-items:center;"><div class="avatar-sm" style="background:${s.color}20;color:${s.color};">${s.name.split(' ').map(w=>w[0]).join('')}</div>${s.name}</div></td>
+      <td style="color:var(--text-muted);">${s.id}</td>
+      <td>${s.class}</td>
+      <td>${s.parent}</td>
+      <td>${s.att}</td>
+      <td><span class="badge ${s.fee==='Paid'?'green':s.fee==='Pending'?'orange':'red'}">${s.fee}</span></td>
+      <td><button class="btn btn-secondary btn-sm" onclick="alert('Viewing ${s.name}')">View</button></td>
+    </tr>`).join('');
+}
+
+function renderTeachers() {
+  const tbody = document.getElementById('teachersBody');
+  tbody.innerHTML = TEACHERS.map(t=>`
+    <tr>
+      <td><div style="display:flex;align-items:center;"><div class="avatar-sm" style="background:#dbeafe;color:#1e40af;">${t.name.split(' ').slice(-1)[0][0]}${t.name.split(' ')[0][0]}</div>${t.name}</div></td>
+      <td style="color:var(--text-muted);">${t.id}</td>
+      <td>${t.dept}</td>
+      <td>${t.subj}</td>
+      <td style="font-size:12px;">${t.classes}</td>
+      <td><span class="badge ${t.status==='Active'?'green':'orange'}">${t.status}</span></td>
+    </tr>`).join('');
+}
+
+function renderClasses() {
+  const el = document.getElementById('classCards');
+  const cls = [
+    {name:'Grade 6',sections:['A','B','C'],students:160,color:'#4f8ef7'},
+    {name:'Grade 7',sections:['A','B'],students:140,color:'#22c55e'},
+    {name:'Grade 8',sections:['A','B'],students:152,color:'#a855f7'},
+    {name:'Grade 9',sections:['A','B','C'],students:178,color:'#f97316'},
+    {name:'Grade 10',sections:['A','B'],students:168,color:'#06b6d4'},
+    {name:'Grade 11',sections:['A','B'],students:144,color:'#f59e0b'},
+    {name:'Grade 12',sections:['A','B'],students:128,color:'#ef4444'},
+  ];
+  el.innerHTML = cls.map(c=>`
+    <div class="card" style="cursor:pointer;border-top:3px solid ${c.color};" onclick="alert('${c.name} — ${c.students} students')">
+      <div style="font-size:16px;font-weight:600;margin-bottom:6px;">${c.name}</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-bottom:10px;">Sections: ${c.sections.join(', ')}</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div><div style="font-size:22px;font-weight:600;color:${c.color};">${c.students}</div><div style="font-size:11px;color:var(--text-muted);">students</div></div>
+        <div style="display:flex;gap:4px;">${c.sections.map(s=>`<span class="badge blue">${c.name.split(' ')[1]}-${s}</span>`).join('')}</div>
+      </div>
+    </div>`).join('');
+}
+
+function renderTimetable() {
+  const el = document.getElementById('timetableGrid');
+  const ddays = ['','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const slots = [
+    ['8:00–8:45','Math','English','Science','Math','English','Sports'],
+    ['8:45–9:30','Science','Math','English','Social','Math','Sports'],
+    ['9:30–10:15','English','Science','Math','Computer','Science','Library'],
+    ['10:15–10:30','Break','Break','Break','Break','Break','Break'],
+    ['10:30–11:15','Social','Computer','Social','English','Science',''],
+    ['11:15–12:00','Computer','Social','Computer','Science','Social',''],
+    ['12:00–12:45','Lunch','Lunch','Lunch','Lunch','Lunch',''],
+    ['12:45–1:30','Art','Hindi','Art','Hindi','Art',''],
+  ];
+  const colors = {'Math':'#4f8ef7','Science':'#22c55e','English':'#a855f7','Social':'#f97316','Computer':'#06b6d4','Sports':'#f59e0b','Hindi':'#ec4899','Art':'#8b5cf6','Library':'#14b8a6','Break':'','Lunch':''};
+  let html = ddays.map(d=>`<div class="tt-cell tt-time">${d}</div>`).join('');
+  slots.forEach(row => {
+    row.forEach((cell, i) => {
+      const isTime = i===0;
+      const isBreak = cell==='Break'||cell==='Lunch';
+      const color = colors[cell] || '';
+      html += `<div class="tt-cell ${isTime?'tt-time':isBreak?'tt-empty':''}" style="${color?'background:'+color+';':''}${!isTime&&!isBreak?'cursor:pointer;':''}">${isTime?`<span style="font-size:10px;">${cell}</span>`:`<span style="color:${isBreak?'var(--text-muted)':'white'};font-size:11.5px;font-weight:${isBreak?'400':'600'}">${cell}</span>`}</div>`;
+    });
+  });
+  el.innerHTML = html;
+}
+
+function renderExams() {
+  const el = document.getElementById('examsList');
+  el.innerHTML = EXAMS.map(e=>`<div class="fee-item"><div><div style="font-size:13.5px;font-weight:500;">${e.name}</div><div style="font-size:12px;color:var(--text-muted);">${e.class} · ${e.marks} marks</div></div><div style="text-align:right;"><div style="font-size:13px;font-weight:500;">${e.date}</div><span class="badge ${e.status==='Upcoming'?'blue':'purple'}">${e.status}</span></div></div>`).join('');
+}
+
+function renderTopStudents() {
+  const tbody = document.getElementById('topStudents');
+  tbody.innerHTML = TOP_STUDENTS.map(s=>`
+    <tr>
+      <td><span style="font-weight:600;color:${s.rank<=3?'#f59e0b':'var(--text)'};">${s.rank<=3?['🥇','🥈','🥉'][s.rank-1]:s.rank}</span></td>
+      <td>${s.name}</td><td>${s.class}</td>
+      <td style="font-weight:600;">${s.total}/500</td>
+      <td>${s.pct}</td>
+      <td><span class="badge ${s.grade==='A+'?'green':'blue'}">${s.grade}</span></td>
+    </tr>`).join('');
+}
+
+function renderGradeChart() {
+  const chart = document.getElementById('gradeChart');
+  const labels = document.getElementById('gradeLabels');
+  const max = Math.max(...GRADE_DATA);
+  chart.innerHTML = '';
+  labels.innerHTML = '';
+  GRADE_DATA.forEach((v,i)=>{
+    const wrap = document.createElement('div'); wrap.className='bar-wrap';
+    const bar = document.createElement('div'); bar.className='bar';
+    bar.style.height=(v/max*100)+'%'; bar.style.background=GRADE_COLORS[i];
+    wrap.appendChild(bar); chart.appendChild(wrap);
+    const lw=document.createElement('div'); lw.className='bar-wrap';
+    const l=document.createElement('div'); l.className='bar-label'; l.textContent=GRADES[i];
+    lw.appendChild(l); labels.appendChild(lw);
+  });
+}
+
+function renderClassAtt() {
+  const tbody = document.getElementById('classAttBody');
+  tbody.innerHTML = CLASS_ATT.map(c=>`
+    <tr>
+      <td>${c.cls}</td><td>${c.total}</td>
+      <td style="color:var(--success);font-weight:500;">${c.pres}</td>
+      <td style="color:var(--danger);font-weight:500;">${c.abs}</td>
+      <td><div style="display:flex;align-items:center;gap:8px;"><div class="progress-bar" style="flex:1;"><div class="progress-fill" style="width:${c.rate}%;background:${c.rate>93?'var(--success)':c.rate>88?'var(--warning)':'var(--danger)'};"></div></div><span style="font-size:12px;">${c.rate}%</span></div></td>
+    </tr>`).join('');
+}
+
+function renderHeatmap() {
+  const el = document.getElementById('heatmap');
+  const colors = ['#e2e8f0','#bfdbfe','#60a5fa','#2563eb','#1e3a8a'];
+  el.innerHTML = '';
+  for(let w=0;w<20;w++) {
+    const col = document.createElement('div'); col.style.cssText='display:flex;flex-direction:column;gap:3px;';
+    for(let d=0;d<5;d++) {
+      const cell = document.createElement('div');
+      cell.style.cssText=`width:14px;height:14px;border-radius:3px;background:${colors[Math.floor(Math.random()*5)]};`;
+      col.appendChild(cell);
+    }
+    el.appendChild(col);
+  }
+}
+
+function renderFees() {
+  const tbody = document.getElementById('feeTransactions');
+  tbody.innerHTML = FEE_TXN.map(t=>`<tr><td>${t.s}</td><td style="font-weight:600;">${t.amt}</td><td>${t.type}</td><td style="color:var(--text-muted);">${t.date}</td><td>${t.method}</td><td><span class="badge ${t.status==='Paid'?'green':'orange'}">${t.status}</span></td></tr>`).join('');
+  const ptbody = document.getElementById('pendingFees');
+  ptbody.innerHTML = PENDING.map(p=>`<tr><td>${p.s}</td><td>${p.class}</td><td style="color:var(--danger);font-weight:600;">${p.amt}</td><td><span class="badge red">${p.overdue}</span></td></tr>`).join('');
+}
+
+function renderLibrary() {
+  const tbody = document.getElementById('libraryBody');
+  tbody.innerHTML = LIBRARY_BOOKS.map(b=>`<tr><td style="font-weight:500;">${b.title}</td><td style="color:var(--text-muted);">${b.author}</td><td>${b.borrower}</td><td>${b.issue}</td><td>${b.due}</td><td><span class="badge ${b.status==='Active'?'blue':b.status==='Returned'?'green':'red'}">${b.status}</span></td></tr>`).join('');
+}
+
+function renderTransport() {
+  const tbody = document.getElementById('transportBody');
+  tbody.innerHTML = TRANSPORT.map(t=>`<tr><td style="font-weight:500;">${t.route}</td><td style="color:var(--text-muted);">${t.bus}</td><td>${t.driver}</td><td>${t.students}</td><td><span class="badge ${t.status==='At School'?'green':t.status==='Delayed'?'red':'blue'}">${t.status}</span></td><td>${t.dep}</td></tr>`).join('');
+}
+
+function renderAnnouncements() {
+  const el = document.getElementById('annList');
+  const nb = document.getElementById('noticeBoard');
+  el.innerHTML = '<div class="card-title">📣 All Announcements</div>'+ANNOUNCEMENTS.map(a=>`<div class="ann-item"><div style="display:flex;justify-content:space-between;margin-bottom:4px;"><div class="ann-title">${a.title}</div><span class="badge ${a.priority==='high'?'orange':'gray'}">${a.priority}</span></div><div style="font-size:13px;color:var(--text-muted);margin-bottom:6px;">${a.content}</div><div class="ann-meta">${a.date} · For: ${a.audience}</div></div>`).join('');
+  nb.innerHTML = ['📌 Annual Fee structure released for 2026-27','📌 Scholarship applications open till Mar 25','📌 New library books catalogue published','📌 School uniform guidelines updated'].map(n=>`<div style="padding:8px 0;border-bottom:1px solid var(--border);font-size:12.5px;">${n}</div>`).join('');
+}
+
+function populateAttModal() {
+  const el = document.getElementById('attStudList');
+  el.innerHTML = STUDENTS.slice(0,6).map(s=>`<div onclick="this.style.background=this.style.background?'':s.color+'20';this.querySelector('span').textContent=this.style.background?'P':'A';" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px;border:1px solid var(--border);border-radius:8px;cursor:pointer;font-size:12px;min-width:70px;text-align:center;"><div class="avatar-sm" style="background:${s.color}20;color:${s.color};margin:0;">${s.name.split(' ').map(w=>w[0]).join('')}</div><div style="font-size:11px;">${s.name.split(' ')[0]}</div><span style="font-size:11px;font-weight:600;color:var(--success);">P</span></div>`).join('');
+}
+
+// ===================== NAVIGATION =====================
+function navigate(view, el) {
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('view-'+view).classList.add('active');
+  if(el) el.classList.add('active');
+  document.getElementById('topbar-title').textContent = el ? el.textContent.trim().replace(/^\S+\s*/,'').replace(/\d+/,'').trim() : view;
+  closeNotif();
+}
+
+// ===================== TABS =====================
+function switchTab(el, id) {
+  const container = el.closest('.card');
+  container.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  container.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  container.querySelector('#'+id).classList.add('active');
+}
+
+// ===================== MODALS =====================
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-backdrop').forEach(m=>m.addEventListener('click',e=>{ if(e.target===m) m.classList.remove('open'); }));
+
+// ===================== NOTIF =====================
+function toggleNotif() { document.getElementById('notifPanel').classList.toggle('open'); }
+function closeNotif() { document.getElementById('notifPanel').classList.remove('open'); }
+document.addEventListener('click', e=>{ if(!e.target.closest('#notifPanel')&&!e.target.closest('.topbar-btn')) closeNotif(); });
+
+// ===================== ACTIONS =====================
+function admitStudent() { closeModal('addStudentModal'); alert('✅ Student admitted successfully!\nAdmission number: GF'+String(Math.floor(Math.random()*900)+100)+' generated.'); }
+function collectFee() { closeModal('collectFeeModal'); alert('✅ Fee collected successfully!\nReceipt #RC-'+String(Math.floor(Math.random()*9000)+1000)+' generated.'); }
+function submitAtt() { closeModal('markAttModal'); alert('✅ Attendance submitted for Grade 10-A!'); }
+function postAnn() { closeModal('addAnnModal'); alert('📣 Announcement posted to all users!'); }
+
+window.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
